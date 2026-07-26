@@ -1,0 +1,23 @@
+{
+  "name": "vectorgov-staging",
+  "description": "STAGING — versão experimental da pesquisa jurídica do VectorGov, apontando para o servidor de staging. Mesmo escopo do plugin oficial (legislação, jurisprudência do TCU, catálogo CATMAT/CATSER) mais as tools em validação. Uso interno.",
+  "author": {
+    "name": "VectorGov",
+    "url": "https://vectorgov.io"
+  },
+  "homepage": "https://vectorgov.io",
+  "license": "MIT",
+  "keywords": [
+    "staging",
+    "testes",
+    "experimental",
+    "licitações",
+    "lei 14.133",
+    "compras públicas",
+    "jurisprudência",
+    "TCU",
+    "CATMAT",
+    "jurídico",
+    "brasil"
+  ]
+}

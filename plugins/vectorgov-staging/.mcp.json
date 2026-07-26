@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vectorgov-staging": {
+      "type": "http",
+      "url": "https://vectorgov-mcp-staging.souzat19.workers.dev/mcp"
+    }
+  }
+}
