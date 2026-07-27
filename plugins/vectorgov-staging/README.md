@@ -29,6 +29,8 @@ O comercial continua **pinado por versão**: cliente não deve receber update a 
 claude plugin update vectorgov-staging@vectorgov-staging
 ```
 
+Consequência prática ao validar: `claude plugin validate` emite **1 aviso** — `version: No version specified` — em cada manifest. **É o comportamento esperado**, não um defeito a consertar: adicionar `version` aqui pinaria o plugin e quebraria o update por commit.
+
 ## Como testar contra a skill comercial
 
 **Modo padrão (os dois plugins habilitados)** — é o caminho do dia a dia: invoque explicitamente, sem desabilitar nada.
