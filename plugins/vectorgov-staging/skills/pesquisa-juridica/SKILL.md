@@ -45,7 +45,7 @@ Modelos de linguagem "lembram" de leis de forma aproximada — misturam versões
 
 ## As ferramentas — qual usar em cada caso
 
-São **três famílias**: **legislação** (5 ferramentas, detalhadas aqui), **jurisprudência do TCU** e **catálogo de compras** (4 ferramentas cada, nas seções próprias abaixo). O roteiro geral:
+São **três famílias**: **legislação** (5 ferramentas, detalhadas aqui), **jurisprudência do TCU** (4) e **catálogo de compras** (5), nas seções próprias abaixo. O roteiro geral:
 
 ```
 Pergunta do usuário
@@ -58,7 +58,7 @@ Pergunta do usuário
   ├─ É sobre JURISPRUDÊNCIA ("o que o TCU decidiu/entende sobre...", acórdão, Tribunal de Contas)
   │     └─► seção "Jurisprudência do TCU" abaixo — 4 ferramentas próprias
   ├─ É sobre o CATÁLOGO DE COMPRAS (código CATMAT/CATSER, "qual o código de...", PDM, classe)
-  │     └─► seção "Catálogo de compras" abaixo — 4 ferramentas próprias
+  │     └─► seção "Catálogo de compras" abaixo — 5 ferramentas próprias
   ├─ Ele está perdido, é novo, ou pergunta "o que você faz?"
   │     └─► Menu
   └─ Qualquer pergunta jurídica temática ("o que a lei diz sobre...", "como funciona...", "quais as regras de...")
@@ -67,7 +67,7 @@ Pergunta do usuário
 
 > **Legislação × jurisprudência — não confunda.** "O que a **lei** exige em X" → **Buscar na legislação**. "O que o **TCU decidiu/entende** sobre X" → **Jurisprudência do TCU**. Se a pergunta pede os dois ("o que a lei diz e como o TCU aplica"), use os dois e mantenha as fontes separadas na resposta (norma ≠ acórdão).
 
-> **Nomes técnicos das ferramentas** — em assistentes que mostram só o nome das tools (sem a descrição), use este mapa: legislação — `hybrid` (Buscar na legislação), `lookup` (Consultar artigo), `grep` (Localizar termo exato), `filtrar_por_tema` (Explorar por tema), `menu` (Menu); jurisprudência — `acordaos_buscar` (busca temática), `acordaos_grep` (termo literal), `acordaos_navegar` (listar/contar), `acordaos_ler` (inteiro teor); catálogo — `buscar_catalogo` (busca), `grep_catalogo` (termo literal), `navegar_catalogo` (categorias/contagem), `codigo_catalogo` (por código); experimentos do staging — `avaliar_busca` (Avaliar a busca), `classificar_planilha_catalogo` (Classificar planilha no catálogo).
+> **Nomes técnicos das ferramentas** — em assistentes que mostram só o nome das tools (sem a descrição), use este mapa: legislação — `hybrid` (Buscar na legislação), `lookup` (Consultar artigo), `grep` (Localizar termo exato), `filtrar_por_tema` (Explorar por tema), `menu` (Menu); jurisprudência — `acordaos_buscar` (busca temática), `acordaos_grep` (termo literal), `acordaos_navegar` (listar/contar), `acordaos_ler` (inteiro teor); catálogo — `buscar_catalogo` (busca), `grep_catalogo` (termo literal), `navegar_catalogo` (categorias/contagem), `pdm_catalogo` (Consultar padrão descritivo), `codigo_catalogo` (por código); experimentos do staging — `avaliar_busca` (Avaliar a busca), `classificar_planilha_catalogo` (Classificar planilha no catálogo).
 
 ### 1. Buscar na legislação — a ferramenta principal
 Busca semântica na legislação curada e vigente — retorna os dispositivos mais relevantes sobre o tema, com texto e links de evidência. É a escolha padrão para perguntas abertas e temáticas.
@@ -145,31 +145,116 @@ Cada resultado indica de que peça veio. **Antes de afirmar "o TCU decidiu X", c
 
 ---
 
-## Catálogo de compras (CATMAT/CATSER) — as 4 ferramentas
+## Catálogo de compras (CATMAT/CATSER) — as 5 ferramentas
 
-Além da legislação, a base dá acesso ao **catálogo oficial de compras do governo federal**: CATMAT (materiais) e CATSER (serviços) — o código que todo ETP, termo de referência e pesquisa de preços exige. Quatro ferramentas, escolhidas pela **intenção**:
+Além da legislação, a base dá acesso ao **catálogo oficial de compras do governo federal**: CATMAT (materiais) e CATSER (serviços) — o código que todo ETP, termo de referência e pesquisa de preços exige. Cinco ferramentas, escolhidas pela **intenção**:
 
 ```
 Pedido do usuário sobre o catálogo
-  ├─ Descreveu o bem/serviço em linguagem natural ("notebook para escritório")
-  │     └─► Buscar no catálogo de compras   ← a padrão
-  ├─ Deu sigla/termo técnico literal ("SODIMM", "PARAFUSO AUTO-ATARRAXANTE")
-  │     └─► Localizar no catálogo por termo exato
-  ├─ Quer explorar categorias, listar tudo de uma classe, ou saber SE EXISTE
-  │     └─► Navegar categorias do catálogo
-  └─ Já tem o código (de busca anterior, edital, planilha)
-        └─► Consultar item do catálogo por código
+  ├─ Já tem o código (edital, planilha, busca anterior)
+  │     └─► Consultar item do catálogo por código
+  ├─ Precisa PROVAR que existe / que não existe, ou levantar tudo de uma classe
+  │     └─► Navegar categorias do catálogo   ← o total é a prova
+  ├─ Tem termo técnico, sigla, norma ou trecho da ficha oficial
+  │     └─► Localizar no catálogo por termo exato   ← comece por aqui quando houver
+  ├─ Errou a palavra do catálogo, ou quer saber quais atributos/valores existem
+  │     └─► Consultar padrão descritivo (PDM)
+  └─ Descreveu com as palavras dele, ou colou uma linha inteira de TR
+        └─► Buscar no catálogo de compras
 ```
 
-**Regras que valem ouro:**
+### Escolher entre as duas buscas — o que muda de verdade
+
+As duas acham item; elas falham de jeitos diferentes. **Cinco critérios decidem**:
+
+1. **Tamanho.** *Localizar por termo exato* aceita **até 200 caracteres**. Linha de
+   Termo de Referência colada passa disso com frequência. Quando passar, a única
+   opção é *Buscar no catálogo* — e **não trunque a linha para caber**, porque o
+   que se corta é justamente a especificação (dimensão, material, norma).
+2. **Vocabulário.** O catálogo tem língua própria e o usuário não a conhece:
+   "toalha de louça" lá é **PANO PRATO**; "chave philips" é **CHAVE FENDA, TIPO
+   PONTA: PHILIPS**; "360 cápsulas" é **ENCAPSULADORA**. *Buscar no catálogo*
+   atravessa essa ponte sozinho. *Localizar por termo exato* só atravessa se
+   **você já souber** a palavra oficial.
+3. **Número dentro de faixa.** O usuário pede 30 cm e a ficha oficial diz
+   `DIÂMETRO: 28 A 35 CM`. *Buscar no catálogo* entende que 30 cabe ali;
+   *Localizar por termo exato* não — "30 CM" é literal e não casa com "28 A 35".
+4. **Fragmento sem substantivo.** `CAPACIDADE 360 CÁPSULAS`, `4,3 L`,
+   `ARMAZENAMENTO SSD 256 GB` — o pedido não diz *o que é a coisa*. Aqui *Buscar
+   no catálogo* ancora no **número** e devolve absurdo (saco de lixo de 360 L,
+   HD de 360 GB). **Use *Localizar por termo exato* nesses casos**, ou peça ao
+   usuário o substantivo que falta.
+5. **Provar que não existe.** Só as ferramentas literais provam. *Buscar no
+   catálogo* devolve **sempre** os mais próximos, sem nenhum sinal de que
+   nenhum deles satisfaz o pedido.
+
+### Quando a sua palavra não casou — descobrir a do catálogo
+
+Se *Localizar por termo exato* voltou ruim ou vazio, o problema costuma ser
+vocabulário. Existe ferramenta própria para isso:
+
+**Consultar padrão descritivo (PDM)** — dado um nome, mesmo **parcial**, devolve
+os atributos daquele padrão e **os valores que de fato existem** no catálogo,
+com a contagem de cada um:
+
+```
+pdm='PANO'  →  PANO LIMPEZA (93 itens) · PANO PRATO (24) · GUARDANAPO DE PANO (22)
+pdm='PANO PRATO'
+  → MATERIAL (24 de 24): ALGODÃO (9) · ALGODÃO CRÚ (6) · ALGODÃO ALVEJADO (3) …
+    COMPRIMENTO (22 de 24): 60 CM (5) · 50 CM (3) · 70 CM (3) …
+    COR (22 de 24): BRANCA (15) · DIVERSAS (ESTAMPADO) (4) …
+```
+
+Como usar:
+
+- **Nome parcial devolve candidatos, não escolhe por você.** Escolha um da lista
+  e repita com o nome exato. É por isso que ela resolve a ponte de vocabulário
+  numa chamada só.
+- **Leia o "22 de 24"**: significa que 2 itens do padrão **não têm** aquele
+  atributo. Não escreva um TR exigindo o que nem sempre existe.
+- **A lista de valores só é completa quando a resposta diz que é.** O rodapé
+  avisa: *"Esta lista é COMPLETA para este padrão"* → aí sim, valor ausente =
+  valor inexistente naquele padrão, e é a forma mais barata de responder "esse
+  tamanho existe no catálogo?". Se vier *"INCOMPLETA"* — porque algum atributo
+  passou de 25 valores distintos, ou porque o padrão é grande demais e foi lido
+  por amostra — **a ausência não prova nada**: use *Navegar categorias*, que dá
+  o total exato.
+- **Padrão gravado em mais de uma grafia**: quando a resposta disser
+  "está gravado em N grafias diferentes", os números já cobrem todas elas — é
+  defeito de dado na origem, não padrões distintos. Não some nem subtraia nada.
+- Depois de *Buscar no catálogo* ou *Consultar por código*, o campo `pdm` do
+  item é a entrada exata para esta ferramenta.
+- Se vier o aviso de **amostra parcial**, a lista de valores está incompleta —
+  em padrão muito grande ela lê uma parte dos itens; trate como indício, não
+  como prova de inexistência (para isso, *Navegar categorias*).
+
+Com o padrão em mãos, refaça o *Localizar por termo exato* na linguagem da
+ficha. Se ainda assim o resultado for ruim, volte para *Buscar no catálogo* —
+em descrição longa e desestruturada ela continua sendo a mais confiável.
+
+### Regras que valem ouro
 
 - **Buscar no catálogo** retorna os melhores itens do funil — **ausência ali NÃO prova inexistência**. Para afirmar "não existe" ou fazer levantamento completo, use **Navegar categorias** (retorna contagem total exata). **Atenção ao escopo:** por padrão tudo é só-ativos, então `total 0` significa **"nenhum item ativo"**, não inexistência absoluta — para provar que algo nunca existiu (nem descontinuado), repita a navegação com `incluir_inativos=true`. Redija a resposta assim: "não há item ativo para X" (não "X não existe").
-- **Localizar por termo exato** sinaliza o nível do match no campo `modo_busca`: `exata` (todos os termos presentes), `ampla` (busca alargada automaticamente) ou `aproximada` (nada literal casou — trate 0 resultados como "o termo não existe no catálogo").
+- **Localizar por termo exato** sinaliza o nível do match no campo `modo_busca`: `exata` (todos os termos presentes), `ampla` (busca alargada automaticamente) ou `aproximada` (nada literal casou — trate 0 resultados como "o termo não existe no catálogo"). **`exata` é um selo de confiança** — quando vier `exata`, os itens realmente contêm todos os termos que você pediu; quando vier `ampla`, confira item a item antes de afirmar qualquer coisa.
 - **Consultar por código aceita até 20 códigos numa chamada só** — "confere esses 8 códigos da planilha" = **1 chamada**, não 8. Cada chamada consome uma consulta do plano; agrupe sempre.
 - **Itens inativos (a armadilha do catálogo):** ~28% dos materiais do catálogo estão **inativos** (descontinuados — não empenháveis em novas contratações). Por padrão, **Buscar no catálogo**, **Localizar por termo exato** e **Navegar categorias** já retornam **só itens ativos** — você não precisa filtrar. Só passe `incluir_inativos=true` se o usuário pedir explicitamente histórico (conferir um código de edital/ata antigos). **Consultar por código** é a exceção: retorna o item mesmo inativo (você pediu aquele código específico) — e nesse caso, se vier marcado inativo, **avise o usuário em destaque que aquele CATMAT/CATSER não serve para nova contratação** e ofereça buscar o equivalente ativo. Nunca recomende um código inativo para uma compra nova sem esse aviso.
 - Filtros de texto do Navegar aceitam curinga `*`: `classe='*LIMPEZA*'` casa qualquer classe contendo LIMPEZA; sem `*` o filtro é igualdade exata.
-- **Fluxo típico completo:** Buscar no catálogo (achar candidatos) → Consultar por código (ficha oficial dos escolhidos, em lote) → usar código + descrição oficial no ETP/TR/pesquisa de preços.
+- **PDM que aparece duas vezes na listagem** — em parte das categorias o mesmo padrão descritivo vem repetido, uma vez entre aspas: `"LENÇOL CAMA"` **e** `LENÇOL CAMA`, `"COLCHÃO"` **e** `COLCHÃO`. É defeito de dado na origem, não são padrões diferentes: **some as duas contagens** antes de afirmar qualquer coisa sobre volume, e consulte as duas grafias ao filtrar.
+- **Nunca invente o código.** Se nenhuma ferramenta trouxe o item, diga que não encontrou e ofereça o mais próximo **marcado como aproximação** — código errado em ETP ou TR vira item errado comprado.
+- **Fluxo típico completo:** achar candidatos (Localizar por termo exato, ou Buscar no catálogo) → **Consultar por código** (ficha oficial dos escolhidos, em lote) → usar código + descrição oficial no ETP/TR/pesquisa de preços.
 - O catálogo **não contém preços** — para valores, o caminho continua sendo a pesquisa de preços (IN 65/2021).
+
+### Lista de compras inteira (vários itens de uma vez)
+
+É o caso mais comum na prática: o usuário cola um trecho de Termo de Referência
+com dezenas de linhas. **Trate linha a linha, não o bloco todo numa busca só** —
+uma consulta com dois itens diferentes não acha nem um nem outro.
+
+Por linha: extraia o substantivo e as especificações que importam (material,
+dimensão, capacidade, norma), aplique os cinco critérios acima, e **acumule os
+códigos** para uma única chamada final de *Consultar por código* (até 20 por vez).
+Ao devolver, deixe explícito quais linhas você resolveu com confiança e quais
+ficaram em aproximação — o usuário precisa saber onde conferir.
 
 ---
 
@@ -204,6 +289,8 @@ Classifica uma **lista** de descrições nos códigos oficiais do catálogo (CAT
 ### Painéis interativos
 
 O staging expõe painéis visuais (busca e catálogo) como recurso experimental — **ainda pendentes de validação num host que suporte esse tipo de interface**. Onde não houver suporte, a resposta chega como **texto**, e isso é o comportamento esperado, não uma falha. Não prometa a tela ao usuário.
+
+O painel do catálogo declara os modos de exibição que aceita, então um host compatível pode ampliá-lo: onde isso funcionar aparece um controle **⤢ Ampliar** no canto. Se o host recusar, o próprio botão passa a dizer que a ação está indisponível — **é informação verdadeira, não defeito**. Continue não prometendo a tela: só o host decide.
 
 ### Se uma ferramenta experimental não aparecer
 
