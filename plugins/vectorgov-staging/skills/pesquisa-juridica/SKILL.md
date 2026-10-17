@@ -1,15 +1,17 @@
 ---
 name: pesquisa-juridica
-description: "[STAGING — testes internos do VectorGov] Versão experimental da pesquisa jurídica, apontando para o servidor de staging. Use SOMENTE quando o pedido mencionar explicitamente staging, teste, experimento ou validação de tool nova do VectorGov (ex.: 'testa no staging', 'valida a busca nova', 'classifica essa planilha no staging'). Cobre o mesmo escopo da skill oficial (legislação de licitações, jurisprudência do TCU, catálogo CATMAT/CATSER) mais as tools experimentais (avaliar_busca, classificar_planilha_catalogo). Pergunta jurídica normal, sem menção a teste/staging, é da skill comercial (vectorgov:pesquisa-juridica) — exceto se ela estiver desabilitada nesta sessão (A/B); nesse caso, atenda normalmente."
+description: "[STAGING — testes internos do VectorGov] Use para pedidos explícitos de staging, testes ou validação do VectorGov: legislação, TCU e nova busca CATMAT/CATSER com painel, PDM, características, unidades oficiais e planilhas de até 100 linhas. No catálogo novo use staging_catalogo, com revisão humana e limite 30/60s. Perguntas normais ficam com a skill comercial, salvo se ela estiver desabilitada nesta sessão."
 ---
 
 # Pesquisa jurídica com o VectorGov — STAGING
 
-> **Ambiente de testes.** Esta skill é o espelho da comercial apontando para o **servidor de staging**, onde as tools experimentais são validadas antes de ir para o plugin oficial. Ela coexiste com `vectorgov:pesquisa-juridica`.
+> **Ambiente de testes.** Esta skill coexiste com `vectorgov:pesquisa-juridica`. O staging é a base da futura V2; este plugin não modifica nem promove ferramentas para o Comercial V1.
 >
 > **Precedência:** pergunta jurídica normal, sem menção a teste/staging, é da skill **comercial** — não intercepte. Assuma o pedido quando ele mencionar staging, teste, experimento ou validação de tool nova, **ou** quando a skill comercial estiver desabilitada na sessão (modo A/B); nesse caso, atenda normalmente, sem cerimônia.
 >
-> Fora isso, o método abaixo é idêntico ao da skill oficial — é justamente essa identidade que permite comparar as duas de forma honesta.
+> **Duas conexões:** `vectorgov-staging` preserva as ferramentas anteriores; `staging_catalogo` entrega a busca nova em `https://mcp-staging.vectorgov.io/mcp/catalogo`. Para catálogo no staging, priorize a conexão nova. Não troque silenciosamente por tools antigas ou comerciais se ela falhar. O usuário pode pedir comparação explícita com o legado, que deve ser identificada como tal.
+
+> **Antes de consultar o catálogo novo ou entregar seu CSV**, leia [references/catalogo-v2.md](references/catalogo-v2.md). Ela contém os contratos reais, o limite 30/60s e as regras de unidade, revisão e entrega do arquivo. As seções jurídicas abaixo continuam valendo para legislação e TCU.
 
 Você tem acesso ao **VectorGov**: uma base de legislação brasileira de compras públicas **curada, vigente e estruturada**. Diferente de buscar no Google ou de responder de cabeça, o VectorGov entrega o texto legal **correto e em vigor** (sem redações revogadas sobrepostas), com **links de evidência verificáveis** para o trecho exato da norma oficial.
 
@@ -45,7 +47,7 @@ Modelos de linguagem "lembram" de leis de forma aproximada — misturam versões
 
 ## As ferramentas — qual usar em cada caso
 
-São **três famílias**: **legislação** (5 ferramentas, detalhadas aqui), **jurisprudência do TCU** (4) e **catálogo de compras** (5), nas seções próprias abaixo. O roteiro geral:
+São **três famílias**: **legislação** (5 ferramentas, detalhadas aqui), **jurisprudência do TCU** (4) e **catálogo novo** (4 tools em `staging_catalogo`). As cinco tools de catálogo anteriores permanecem disponíveis para comparação explícita. Descubra os nomes efetivamente expostos pelo cliente; prefixos podem variar. O roteiro geral:
 
 ```
 Pergunta do usuário
@@ -58,7 +60,7 @@ Pergunta do usuário
   ├─ É sobre JURISPRUDÊNCIA ("o que o TCU decidiu/entende sobre...", acórdão, Tribunal de Contas)
   │     └─► seção "Jurisprudência do TCU" abaixo — 4 ferramentas próprias
   ├─ É sobre o CATÁLOGO DE COMPRAS (código CATMAT/CATSER, "qual o código de...", PDM, classe)
-  │     └─► seção "Catálogo de compras" abaixo — 5 ferramentas próprias
+  │     └─► seção "Catálogo novo" e references/catalogo-v2.md — 4 tools próprias
   ├─ Ele está perdido, é novo, ou pergunta "o que você faz?"
   │     └─► Menu
   └─ Qualquer pergunta jurídica temática ("o que a lei diz sobre...", "como funciona...", "quais as regras de...")
@@ -67,7 +69,7 @@ Pergunta do usuário
 
 > **Legislação × jurisprudência — não confunda.** "O que a **lei** exige em X" → **Buscar na legislação**. "O que o **TCU decidiu/entende** sobre X" → **Jurisprudência do TCU**. Se a pergunta pede os dois ("o que a lei diz e como o TCU aplica"), use os dois e mantenha as fontes separadas na resposta (norma ≠ acórdão).
 
-> **Nomes técnicos das ferramentas** — em assistentes que mostram só o nome das tools (sem a descrição), use este mapa: legislação — `hybrid` (Buscar na legislação), `lookup` (Consultar artigo), `grep` (Localizar termo exato), `filtrar_por_tema` (Explorar por tema), `menu` (Menu); jurisprudência — `acordaos_buscar` (busca temática), `acordaos_grep` (termo literal), `acordaos_navegar` (listar/contar), `acordaos_ler` (inteiro teor); catálogo — `buscar_catalogo` (busca), `grep_catalogo` (termo literal), `navegar_catalogo` (categorias/contagem), `pdm_catalogo` (Consultar padrão descritivo), `codigo_catalogo` (por código); experimentos do staging — `avaliar_busca` (Avaliar a busca), `classificar_planilha_catalogo` (Classificar planilha no catálogo).
+> **Nomes técnicos das ferramentas** — legislação: `hybrid`, `lookup`, `grep`, `filtrar_por_tema`, `menu`; jurisprudência: `acordaos_buscar`, `acordaos_grep`, `acordaos_navegar`, `acordaos_ler`; **catálogo novo (`staging_catalogo`)**: `catalogo_interativo`, `unidades_catalogo`, `preparar_planilha_catalogo`, `consultar_lote_catalogo`; catálogo legado, apenas quando solicitado: `buscar_catalogo`, `grep_catalogo`, `navegar_catalogo`, `pdm_catalogo`, `codigo_catalogo`, `classificar_planilha_catalogo`; experimento anterior: `avaliar_busca`, se estiver exposto.
 
 ### 1. Buscar na legislação — a ferramenta principal
 Busca semântica na legislação curada e vigente — retorna os dispositivos mais relevantes sobre o tema, com texto e links de evidência. É a escolha padrão para perguntas abertas e temáticas.
@@ -145,7 +147,22 @@ Cada resultado indica de que peça veio. **Antes de afirmar "o TCU decidiu X", c
 
 ---
 
-## Catálogo de compras (CATMAT/CATSER) — as 5 ferramentas
+## Catálogo novo (CATMAT/CATSER) — fluxo padrão no staging
+
+Leia [references/catalogo-v2.md](references/catalogo-v2.md) antes de agir. Use:
+
+- `catalogo_interativo` para buscar, descobrir PDMs, conhecer características, navegar e conferir um código. Preserve a descrição; unidade de fornecimento não é característica do produto.
+- `unidades_catalogo` para conferir as unidades oficiais do item. Compatibilidade não autoriza conversão nem confirmação automática.
+- `preparar_planilha_catalogo` para abrir até 100 linhas autorizadas para revisão. Preparar não pesquisa.
+- `consultar_lote_catalogo` para consultar de 1 a 5 linhas por chamada. Não envie 100 linhas a essa tool.
+
+Mantenha **30 chamadas por 60 segundos**, considerando que uma chamada de tool pode consumir várias consultas internas e compartilhar quota com o painel. Não execute lote do agente enquanto o painel consulta a mesma lista. Respeite a espera devolvida pelo servidor e preserve as linhas pendentes. Tasks não faz parte deste fluxo.
+
+Confira família, descritivo, características pendentes, atividade, cobertura e unidade antes de recomendar. O usuário escolhe e revisa; não trate score, `candidatos` ou `compativel` como aceite. Para exportar, só inclua linhas revisadas com unidade oficial e formato conferido. Importação no Compras.gov.br ainda não homologada.
+
+## Catálogo legado — somente para comparação solicitada
+
+**As instruções desta seção não se aplicam à nova busca.** Use-as apenas quando o usuário pedir o catálogo anterior em `vectorgov-staging`; identifique a origem. Não use o legado para contornar autenticação, quota ou falha do catálogo novo.
 
 Além da legislação, a base dá acesso ao **catálogo oficial de compras do governo federal**: CATMAT (materiais) e CATSER (serviços) — o código que todo ETP, termo de referência e pesquisa de preços exige. Cinco ferramentas, escolhidas pela **intenção**:
 
@@ -260,7 +277,7 @@ ficaram em aproximação — o usuário precisa saber onde conferir.
 
 ## Experimentos (só no staging)
 
-Duas ferramentas existem **apenas aqui**, em validação. Elas não estão no plugin oficial — se o usuário quiser levá-las para o dia a dia, avise que ainda são experimentais.
+Os experimentos anteriores abaixo são preservados quando expostos por `vectorgov-staging`. Não substituem as quatro tools novas de `staging_catalogo`; a disponibilidade efetiva vem da conexão, não desta lista histórica.
 
 ### Avaliar a busca (`avaliar_busca`)
 
@@ -272,6 +289,8 @@ Registra o julgamento do usuário sobre **os dispositivos que a última busca tr
 - **Escopo:** avalia a última busca **desta conversa**. Se ainda não houve busca, a ferramenta avisa e nada é registrado — nesse caso, faça a busca primeiro. Se ela disser que não conseguiu identificar qual busca avaliar, **refaça a busca e avalie o resultado novo**; nunca insista para forçar o registro em outra busca.
 
 ### Classificar planilha no catálogo (`classificar_planilha_catalogo`)
+
+**Legado, somente para comparação solicitada.** Na busca nova, use `preparar_planilha_catalogo` (até 100 linhas) e `consultar_lote_catalogo` (até 5 por chamada). Não aplique o limite de 100 por chamada de classificação antiga ao novo lote.
 
 Classifica uma **lista** de descrições nos códigos oficiais do catálogo (CATMAT/CATSER), em lote — **até 100 itens por chamada**, cada descrição entre 3 e 160 caracteres.
 
@@ -288,25 +307,23 @@ Classifica uma **lista** de descrições nos códigos oficiais do catálogo (CAT
 
 ### Painéis interativos
 
-O staging expõe painéis visuais (busca e catálogo) como recurso experimental — **ainda pendentes de validação num host que suporte esse tipo de interface**. Onde não houver suporte, a resposta chega como **texto**, e isso é o comportamento esperado, não uma falha. Não prometa a tela ao usuário.
-
-O painel do catálogo declara os modos de exibição que aceita, então um host compatível pode ampliá-lo: onde isso funcionar aparece um controle **⤢ Ampliar** no canto. Se o host recusar, o próprio botão passa a dizer que a ação está indisponível — **é informação verdadeira, não defeito**. Continue não prometendo a tela: só o host decide.
+O catálogo novo oferece MCP App, já testado no Codex; o aceite na instalação do Claude ainda precisa ocorrer. Use o recurso fornecido pela tool, sem recriar o painel como artefato local ou página de imitação. Onde não houver suporte, explique a limitação e continue pelo retorno textual quando possível. Não prometa que o host abrirá a interface ou fará download nativo. Para entrega do CSV pela conversa, siga `references/catalogo-v2.md`.
 
 ### Se uma ferramenta experimental não aparecer
 
 **Ferramenta ausente ≠ flag desligada.** Antes de concluir qualquer coisa, faça a triagem nesta ordem:
 
-1. a **flag** daquele experimento no ambiente de staging;
-2. o **servidor com versão defasada** — a publicação do staging é manual, então o código novo pode simplesmente não ter subido;
-3. **regressão** — a ferramenta existia e sumiu.
+1. o plugin atualizado e a conexão correta (`staging_catalogo` para a busca nova), habilitada e autenticada;
+2. a lista real de tools, suporte do host, flags e versão publicada, somente se houver acesso autorizado para consultar;
+3. eventual regressão. Não mude flags, credenciais ou deploy para tentar corrigir o cliente sem autorização.
 
-E **reporte** a ausência com essa triagem, dizendo qual das três hipóteses você não conseguiu descartar. Nunca silencie o sumiço nem invente que o experimento "foi desligado".
+Reporte o que foi confirmado e o que não foi. Não invente que a tool foi desligada, nem use o comercial para concluir um teste que deveria ser do staging.
 
 ---
 
 ## Como responder
 
-**Sempre inclua os links de evidência — na LEGISLAÇÃO e na JURISPRUDÊNCIA.** Cada resultado da legislação vem com link para ver o trecho destacado na norma e/ou baixar o PDF oficial; cada acórdão vem com link para o **inteiro teor verificável**. Cite o link ao lado da afirmação, sempre. (As ferramentas de CATÁLOGO não retornam links — para elas, cite o código oficial.) Formato compacto para legislação:
+**Sempre inclua os links de evidência — na LEGISLAÇÃO e na JURISPRUDÊNCIA.** Cada resultado da legislação vem com link para ver o trecho destacado na norma e/ou baixar o PDF oficial; cada acórdão vem com link para o **inteiro teor verificável**. Cite o link ao lado da afirmação, sempre. No catálogo, cite código e descrição oficial; quando a resposta trouxer `fonte` e `consultado_em`, preserve-os sem inventar URL de item. Formato compacto para legislação:
 
 > [1] Lei 14.133/2021, Art. 75 — [ver trecho](evidence_url) · [baixar PDF](document_url)
 
@@ -356,6 +373,8 @@ O que **nunca** fazer: preencher o vazio com resposta de memória.
 ---
 
 ## Se uma ferramenta falhar
+
+**Catálogo novo:** para `staging_catalogo`, siga o tratamento específico em `references/catalogo-v2.md`: login Cloudflare Access, espera da quota 30/60s e ausência de fallback silencioso. As orientações de conta/plano abaixo são do fluxo anterior, não um motivo para cobrar créditos ou encaminhar o login novo para `vectorgov.io`.
 
 - **Ferramentas do VectorGov ausentes ou erro de autorização** (conector não conectado/logado): não é defeito — falta conectar. Oriente pela superfície: no **claude.ai**, Ajustes → Conectores → VectorGov; no **Claude Code**, rode `/mcp` e complete o login do VectorGov (conta em **vectorgov.io**). Enquanto isso, **não responda de memória** — explique o que você consultaria com o conector ativo.
 - **"Créditos/consultas esgotados"** (erro de saldo): informe que as consultas do plano acabaram e oriente a gerenciar o plano em **vectorgov.io** (menu Planos).
@@ -430,16 +449,16 @@ Muitos usuários são profissionais de compras (pregoeiros, assessores, equipe d
 - Ação: **Explorar por tema** (ou **Menu**).
 - Resposta: lista os temas e sugere 2-3 perguntas iniciais.
 
-**Catálogo de compras (fluxo completo)**
+**Catálogo novo (fluxo completo)**
 > Usuário: "Preciso do código do catálogo para comprar cadeiras giratórias"
-- Ação 1: **Buscar no catálogo de compras** — "cadeira giratória para escritório".
-- Ação 2: **Consultar item do catálogo por código** — códigos dos 2-3 candidatos, numa chamada só.
-- Resposta: código + descrição oficial + classe/PDM de cada um, marcando inativos.
+- Ação: `catalogo_interativo` com `acao="buscar"`, `tipo="material"` e a descrição; refine com o PDM e características retornados quando necessário.
+- Depois da escolha: `unidades_catalogo` para o código selecionado. Mostre diferenças, pendências e opções oficiais antes da confirmação humana.
+- Resposta: código, descrição oficial, PDM, unidade conferida e limites de cobertura.
 
-**Catálogo — prova de inexistência**
+**Catálogo novo — cobertura**
 > Usuário: "Existe notebook com 16GB no catálogo?"
-- Ação: **Navegar categorias do catálogo** — descricao='*16GB*' (o total responde de forma exaustiva).
-- Resposta: o que o total mostrar — com a contagem, não com achismo.
+- Ação: buscar e, quando necessário, navegar no PDM correto com as características retornadas pela fonte.
+- Resposta: diferencie itens encontrados, recorte parcial e total do filtro. Ausência em ranking ou amostra não prova inexistência no catálogo inteiro.
 
 ---
 

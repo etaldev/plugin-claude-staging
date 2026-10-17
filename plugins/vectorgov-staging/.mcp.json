@@ -3,6 +3,10 @@
     "vectorgov-staging": {
       "type": "http",
       "url": "https://vectorgov-mcp-staging.souzat19.workers.dev/mcp"
+    },
+    "staging_catalogo": {
+      "type": "http",
+      "url": "https://mcp-staging.vectorgov.io/mcp/catalogo"
     }
   }
 }

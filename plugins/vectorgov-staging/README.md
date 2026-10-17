@@ -1,86 +1,97 @@
-# VectorGov — plugin de STAGING (uso interno)
+# VectorGov - plugin de staging (uso interno)
 
-> **Este não é o plugin de clientes.** O oficial é [`etaldev/plugin-claude`](https://github.com/etaldev/plugin-claude) (`vectorgov@vectorgov`), pinado por versão e apontando para `mcp.vectorgov.io`. Este aqui aponta para o **servidor de staging** e existe para testar skill e tools experimentais **juntas**, antes de promover ao comercial.
+Distribuição: **etaldev/plugin-claude-staging**. O plugin comercial `etaldev/plugin-claude` e o MCP Comercial V1 não são alterados. O staging é a base da futura V2; não porte esta atualização para a V1.
 
-## Para que serve
+## Duas conexões, sem remover ferramentas
 
-O worker de staging é um espelho do comercial mais os experimentos em validação. Empacotá-lo como plugin permite:
+| Servidor no plugin | Endereço | Papel |
+| --- | --- | --- |
+| `vectorgov-staging` | `https://vectorgov-mcp-staging.souzat19.workers.dev/mcp` | Conexão anterior preservada: legislação, TCU e tools legadas. |
+| `staging_catalogo` | `https://mcp-staging.vectorgov.io/mcp/catalogo` | Catálogo novo, protegido pelo Cloudflare Access. |
 
-- iterar **skill + tools** no mesmo ciclo (a skill é o que ensina o Claude a usar a tool — testar uma sem a outra não prova nada);
-- rodar **A/B** contra a skill comercial com as duas instaladas;
-- promover ao comercial por **diff**, porque o corpo das duas skills é o mesmo fora dos deltas declarados.
+A configuração antiga é mantida sem alteração. Esta publicação adiciona conexão e instruções; não publica Worker, não muda acesso nem altera a quota **30 chamadas por 60 segundos** do catálogo. Uma tool pode consumir várias consultas internas; 30 tools/minuto não é uma margem segura.
 
-## Instalação
+O servidor continua em `euteajudo/vector_govi_2/vectorgov-mcp-staging`; este repositório distribui o plugin, não hospeda o servidor.
+
+## Atualizar no Claude
+
+### Repositório pelo Claude/Cowork
+
+Abra **Personalizar (Customize) > Plugins**, localize o marketplace `vectorgov-staging` e o plugin de mesmo nome. Use a opção de atualização disponível na sua versão. Se ainda não adicionou, escolha **Adicionar marketplace > Repositório** e informe:
+
+```text
+https://github.com/etaldev/plugin-claude-staging
+```
+
+Abra uma nova conversa para carregar a skill e conexões novas. Se não aparecer `staging_catalogo`, confira se a instalação veio deste repositório ou de um ZIP antigo: enviar apenas a URL no chat não instala nem atualiza uma conexão MCP.
+
+### Claude Code
+
+Primeira instalação:
 
 ```bash
 claude plugin marketplace add etaldev/plugin-claude-staging
 claude plugin install vectorgov-staging@vectorgov-staging
 ```
 
-Na primeira consulta o Claude pede o login OAuth do servidor de staging (mesma mecânica do comercial — o worker é o próprio Authorization Server). Coexiste com o plugin oficial: os nomes de plugin, marketplace e servidor são distintos, e a skill fica qualificada como `vectorgov-staging:pesquisa-juridica`.
-
-## Versionamento: por SHA, de propósito
-
-O `plugin.json` **omite o campo `version`**. Pela [referência oficial de plugins](https://code.claude.com/docs/en/plugins-reference#version-management), sem `version` o Claude Code usa o **commit SHA** do git — todo commit vira um update disponível, sem cerimônia de bump. É o que se quer em staging.
-
-O comercial continua **pinado por versão**: cliente não deve receber update a cada commit.
+Atualizar somente este plugin:
 
 ```bash
+claude plugin marketplace update vectorgov-staging
 claude plugin update vectorgov-staging@vectorgov-staging
 ```
 
-Consequência prática ao validar: `claude plugin validate` emite **1 aviso** — `version: No version specified` — em cada manifest. **É o comportamento esperado**, não um defeito a consertar: adicionar `version` aqui pinaria o plugin e quebraria o update por commit.
+Abra uma nova sessão. Use `/mcp` para conferir e autenticar `staging_catalogo`. Não desabilite nem atualize o plugin comercial para realizar o teste.
 
-## Como testar contra a skill comercial
+### Login e painel
 
-**Modo padrão (os dois plugins habilitados)** — é o caminho do dia a dia: invoque explicitamente, sem desabilitar nada.
+Autorize a conexão nova pelo Cloudflare Access com e-mail permitido no staging. Não cole senha, código ou token na conversa ou no repositório. O login antigo não comprova autorização da conexão nova.
 
-```
-usa a skill de staging: quais os casos de dispensa?
-```
+O painel é um MCP App. O suporte depende da superfície do Claude; uma chamada textual no terminal não comprova funcionamento do painel no Desktop/Cowork. Não recrie o painel como HTML local para declarar o teste remoto aprovado. O aceite na instalação do Claude ainda precisa ocorrer.
 
-ou `/vectorgov-staging:pesquisa-juridica`.
+## Tools novas e skill
 
-**Modo A/B puro (comercial desabilitado)** — `claude plugin disable` é **persistente**: vale até você reabilitar e afeta sessões paralelas. Checklist da sessão:
+| Tool | Uso |
+| --- | --- |
+| `catalogo_interativo` | Busca, PDM, características, navegação, comparação no painel e consulta por código. |
+| `unidades_catalogo` | Unidades oficiais e situação do item, sem converter quantidades. |
+| `preparar_planilha_catalogo` | Abre 1 a 100 linhas autorizadas; não consulta nem confirma itens. |
+| `consultar_lote_catalogo` | Consulta 1 a 5 linhas por chamada; até 3 candidatos por linha. |
 
-```bash
-claude plugin disable vectorgov@vectorgov
-# … testar …
-claude plugin enable vectorgov@vectorgov
-```
+A skill mantém o nome **`vectorgov-staging:pesquisa-juridica`**. Ela direciona catálogo para a conexão nova e carrega [o guia específico](skills/pesquisa-juridica/references/catalogo-v2.md). Legislação e TCU mantêm suas orientações anteriores. Tools antigas de catálogo ficam disponíveis para comparação solicitada, sem fallback silencioso diante de falha ou limite.
 
-Reabilite ao fim e evite sessões paralelas no intervalo. A skill de staging cobre esse modo (atende pergunta jurídica normal quando a comercial está desabilitada), então não há buraco de roteamento.
+Peça ao Claude para **usar a skill de staging**, especialmente se o plugin comercial também estiver habilitado.
 
-## Tools do servidor de staging
+## Primeiro teste: papel A4
 
-As **13 do comercial** — `hybrid`, `lookup`, `grep`, `filtrar_por_tema`, `menu`, os 4 `*_catalogo` e os 4 `acordaos_*` — mais **2 exclusivas**:
+Na conversa nova:
 
-| Tool | O que faz | Flag |
-|---|---|---|
-| `avaliar_busca` | Registra 👍/👎 sobre os **dispositivos** trazidos pela última busca da conversa | `FEEDBACK_ENABLED` |
-| `classificar_planilha_catalogo` | Classifica até **100** descrições em códigos CATMAT/CATSER em lote, com status `encontrado`/`revisar`/`sem_correspondencia` | `CATALOGO_APP_ENABLED` |
+> Use a skill vectorgov-staging:pesquisa-juridica e leia seu guia do catálogo V2. Use somente staging_catalogo. Abra a busca de papel A4 branco 75 g/m2, com embalagem de 500 folhas. Mostre PDM, características, diferenças e unidades oficiais. Não confirme itens por mim e não use o MCP comercial.
 
-Há também **2 recursos MCP App** (painéis de busca e de catálogo), atrás de `BUSCA_APP_ENABLED` e `CATALOGO_APP_ENABLED` — **ainda pendentes de validação num host MCP Apps real**. No Claude Code a resposta chega como texto.
+Confira as quatro tools e a abertura do painel remoto. Refine características, compare candidatos, escolha unidade oficial e revise antes de exportar. Um resultado de referência é o CATMAT 461819, mas não é resposta fixa para qualquer papel A4.
 
-Flags vivem em `vectorgov-mcp-staging/wrangler.jsonc`, no monorepo. **Tool ausente ≠ flag desligada**: confira na ordem (1) a flag, (2) se o worker está com deploy defasado — o deploy do staging é **manual** de propósito, (3) regressão.
+## Segundo teste: planilha variada
 
-## Promover um experimento ao comercial
+Anexe uma lista pequena com papel, caneta, copo e detergente:
 
-Registrar a tool no worker comercial é só o começo. Checklist completo:
+> Use a skill de staging e o catálogo novo para preparar esta planilha. Preserve descritivos, ordem, unidades e quantidades. Consulte respeitando 30/60s. Mostre incompatibilidades e características pendentes; deixe a confirmação de código e unidade para mim. Não use o comercial.
 
-1. **Worker comercial** (`vectorgov-mcp-comercial-v1/`, PR no monorepo): portar a implementação, o registro da tool, a entrada em `toolsFor()` (`src/consent.ts` — inventário público) e as feature flags no `wrangler.jsonc`.
-2. **Testes**: portar os testes do staging (`src/*.test.mjs`) e passar no type-check.
-3. **Se for MCP App**: portar resource + bundle do widget — só depois de validado em host MCP Apps real.
-4. **Gates**: `check-banned-terms` (política de privacidade) e CI verdes.
-5. **Deploy do comercial**: só por CI (`deploy-workers.yml`). Nunca `wrangler deploy` manual — já reverteu produção por subir de disco defasado.
-6. **Skill comercial** (`etaldev/plugin-claude`): portar a seção correspondente + o mapa de nomes e **bumpar `version`** no `plugin.json`.
-7. **Smoke test** no comercial e, por fim, remover a seção do experimento aqui — o delta volta ao mínimo.
+Se consultar pelo painel, não rode lote pelo agente em paralelo. Não precisa começar com 100 linhas. Para testar aviso de unidade, confira CATMAT 438827 com Frasco 500 ML sem forçar equivalência com LITRO.
 
-## Regra anti-drift
+## Arquivo para download
 
-O corpo da skill de staging é **espelho** da comercial. Deltas legítimos, e somente estes:
+O upload tem seis colunas; `VALOR_UNITARIO` e `INFORMACOES_COMPLEMENTARES` ficam vazios. Só linhas revisadas com unidade e formato conferidos entram. Na exportação parcial, o usuário deve saber quais linhas ficaram de fora.
 
-- **na skill**: `description` própria · nota de topo · seção "Experimentos (só no staging)" · as 2 entradas extras no mapa de nomes técnicos;
-- **no plugin**: `.mcp.json` (URL e nome do servidor) · `plugin.json` (nome, ausência de `version`, description/keywords de staging) · este README.
+Sem download nativo, o App solicita entrega na conversa. A skill orienta decodificar o payload, conferir tamanho/hash e gerar arquivo real, sem repetir buscas. Mensagem enviada não significa arquivo entregue.
 
-Qualquer outra divergência é drift a corrigir na próxima sincronização.
+**Importação na área logada do Compras.gov.br ainda não homologada.** Quantidade não vira sétima coluna. Tasks continua fora do escopo.
+
+## Versionamento e manutenção
+
+Nomes de plugin, marketplace e skill preservados. Manifest continua sem `version`, mantendo atualização por SHA. O aviso de versão ausente na validação é esperado.
+
+Mudanças posteriores ficam no staging. Preserve ferramentas existentes e limites do servidor. Não grave credenciais nem promova alterações para `vectorgov-mcp-comercial-v1` ou `etaldev/plugin-claude`.
+
+Validação para manutenção, na raiz do repositório: `claude plugin validate .`, `claude plugin validate plugins/vectorgov-staging` e `node scripts/validate-plugin.mjs`. Com Node que suporte TypeScript e checkout do servidor com dependências instaladas, acrescente `--catalog-source <diretorio-vectorgov-mcp-staging>` ao último comando para validar exemplos contra os schemas reais. Sem esse argumento, essa parte é explicitamente marcada como não executada. O teste de preservação usa o commit-base `4647a32`, que deve existir no clone.
+
+Referências: [plugins no Claude/Cowork](https://support.claude.com/en/articles/13837440-use-plugins-in-claude) e [gerenciamento no Claude Code](https://code.claude.com/docs/en/discover-plugins).
