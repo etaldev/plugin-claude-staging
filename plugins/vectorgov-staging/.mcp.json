@@ -2,7 +2,7 @@
   "mcpServers": {
     "vectorgov-staging": {
       "type": "http",
-      "url": "https://vectorgov-mcp-staging.souzat19.workers.dev/mcp"
+      "url": "https://mcp-staging.vectorgov.io/mcp"
     },
     "staging_catalogo": {
       "type": "http",

@@ -9,7 +9,7 @@ description: "[STAGING — testes internos do VectorGov] Use para pedidos explí
 >
 > **Precedência:** pergunta jurídica normal, sem menção a teste/staging, é da skill **comercial** — não intercepte. Assuma o pedido quando ele mencionar staging, teste, experimento ou validação de tool nova, **ou** quando a skill comercial estiver desabilitada na sessão (modo A/B); nesse caso, atenda normalmente, sem cerimônia.
 >
-> **Duas conexões:** `vectorgov-staging` preserva as ferramentas anteriores; `staging_catalogo` entrega a busca nova em `https://mcp-staging.vectorgov.io/mcp/catalogo`. Para catálogo no staging, priorize a conexão nova. Não troque silenciosamente por tools antigas ou comerciais se ela falhar. O usuário pode pedir comparação explícita com o legado, que deve ser identificada como tal.
+> **Duas conexões:** `vectorgov-staging`, em `https://mcp-staging.vectorgov.io/mcp`, preserva as ferramentas anteriores; `staging_catalogo` entrega a busca nova em `https://mcp-staging.vectorgov.io/mcp/catalogo`. Ambas exigem Cloudflare Access e devem estar habilitadas e autenticadas para acesso ao conjunto completo. O endereço antigo `workers.dev` está desativado. Para catálogo no staging, priorize a conexão nova. Não troque silenciosamente por tools antigas ou comerciais se ela falhar. O usuário pode pedir comparação explícita com o legado, que deve ser identificada como tal.
 
 > **Antes de consultar o catálogo novo ou entregar seu CSV**, leia [references/catalogo-v2.md](references/catalogo-v2.md). Ela contém os contratos reais, o limite 30/60s e as regras de unidade, revisão e entrega do arquivo. As seções jurídicas abaixo continuam valendo para legislação e TCU.
 

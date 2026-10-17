@@ -19,11 +19,17 @@ async function check(name, fn) {
   console.log(`OK ${name}`);
 }
 
-await check("existing MCP configuration is preserved; only catalog endpoint added", () => {
+await check("existing MCP identity preserved with protected URL; catalog endpoint retained", () => {
   const oldConfig = JSON.parse(prior(`${base}/.mcp.json`));
   const current = json(`${base}/.mcp.json`);
   assert.deepEqual(Object.keys(current.mcpServers).sort(), [...Object.keys(oldConfig.mcpServers), "staging_catalogo"].sort());
-  for (const [name, config] of Object.entries(oldConfig.mcpServers)) assert.deepEqual(current.mcpServers[name], config);
+  assert.ok(Object.hasOwn(oldConfig.mcpServers, "vectorgov-staging"));
+  for (const [name, config] of Object.entries(oldConfig.mcpServers)) {
+    const expected = name === "vectorgov-staging"
+      ? { ...config, url: "https://mcp-staging.vectorgov.io/mcp" }
+      : config;
+    assert.deepEqual(current.mcpServers[name], expected);
+  }
   assert.deepEqual(current.mcpServers.staging_catalogo, { type: "http", url: "https://mcp-staging.vectorgov.io/mcp/catalogo" });
 });
 

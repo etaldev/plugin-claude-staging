@@ -6,10 +6,12 @@ Distribuição: **etaldev/plugin-claude-staging**. O plugin comercial `etaldev/p
 
 | Servidor no plugin | Endereço | Papel |
 | --- | --- | --- |
-| `vectorgov-staging` | `https://vectorgov-mcp-staging.souzat19.workers.dev/mcp` | Conexão anterior preservada: legislação, TCU e tools legadas. |
+| `vectorgov-staging` | `https://mcp-staging.vectorgov.io/mcp` | Legislação, TCU e tools legadas, pelo domínio protegido. |
 | `staging_catalogo` | `https://mcp-staging.vectorgov.io/mcp/catalogo` | Catálogo novo, protegido pelo Cloudflare Access. |
 
-A configuração antiga é mantida sem alteração. Esta publicação adiciona conexão e instruções; não publica Worker, não muda acesso nem altera a quota **30 chamadas por 60 segundos** do catálogo. Uma tool pode consumir várias consultas internas; 30 tools/minuto não é uma margem segura.
+Mantenha **as duas conexões habilitadas e autenticadas**. `/mcp/catalogo` não substitui `/mcp`, e `/mcp` ainda não incorpora as quatro tools do catálogo novo. Ambas usam Cloudflare Access. O antigo endereço `vectorgov-mcp-staging.souzat19.workers.dev` está desativado (404); foi substituído pelo domínio protegido sem remover ferramentas.
+
+Esta publicação atualiza conexão e instruções; não publica Worker, não muda políticas de acesso nem altera a quota **30 chamadas por 60 segundos** do catálogo. Uma tool pode consumir várias consultas internas; 30 tools/minuto não é uma margem segura.
 
 O servidor continua em `euteajudo/vector_govi_2/vectorgov-mcp-staging`; este repositório distribui o plugin, não hospeda o servidor.
 
@@ -41,11 +43,11 @@ claude plugin marketplace update vectorgov-staging
 claude plugin update vectorgov-staging@vectorgov-staging
 ```
 
-Abra uma nova sessão. Use `/mcp` para conferir e autenticar `staging_catalogo`. Não desabilite nem atualize o plugin comercial para realizar o teste.
+Abra uma nova sessão. Use `/mcp` para conferir e autenticar **`vectorgov-staging` e `staging_catalogo`**. Não desabilite nem atualize o plugin comercial para realizar o teste.
 
 ### Login e painel
 
-Autorize a conexão nova pelo Cloudflare Access com e-mail permitido no staging. Não cole senha, código ou token na conversa ou no repositório. O login antigo não comprova autorização da conexão nova.
+Autorize cada conexão pelo Cloudflare Access com e-mail permitido no staging, quando o cliente solicitar. Não cole senha, código ou token na conversa ou no repositório. O login de uma conexão não comprova autorização da outra. Para conferir a instalação completa, peça a lista de ferramentas de ambos os servidores antes de iniciar consultas.
 
 O painel é um MCP App. O suporte depende da superfície do Claude; uma chamada textual no terminal não comprova funcionamento do painel no Desktop/Cowork. Não recrie o painel como HTML local para declarar o teste remoto aprovado. O aceite na instalação do Claude ainda precisa ocorrer.
 
