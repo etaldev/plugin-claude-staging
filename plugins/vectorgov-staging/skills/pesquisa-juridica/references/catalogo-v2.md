@@ -1,6 +1,6 @@
 # Catálogo interativo do staging
 
-Use este guia para a nova busca, planilhas e entrega do arquivo revisado. Servidor MCP: `staging_catalogo`, em `https://mcp-staging.vectorgov.io/mcp/catalogo`. O plugin fornece configuração e instruções; o código executa no Worker remoto. Não chame o comercial para completar este teste.
+Use este guia para a nova busca, planilhas e entrega do arquivo revisado. Servidor MCP unificado: `vectorgov-staging`, em `https://mcp-staging.vectorgov.io/mcp`. O alias `staging_catalogo` permanece no pacote por compatibilidade; não é uma segunda conexão obrigatória nem motivo para duplicar consultas. O plugin fornece configuração e instruções; o código executa no Worker remoto. Não chame o comercial para completar este teste.
 
 ## Descoberta e acesso
 
